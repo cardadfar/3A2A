@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>3D Poser</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		<style>
+			body {
+				background-color: #f0f0f0;
+				color: #444;
+			}
+			a {
+				color: #08f;
+			}
+		</style>
+	</head>
+	<body>
+
+		<div id="container"></div>
+
+		<script type="module">
+
+			import * as THREE from './modules/three.module.js';
+
+			import Stats from './modules/stats.module.js';
+			import { GUI } from './modules/dat.gui.module.js';
+			import { OrbitControls } from './modules/OrbitControls.js';
+			
+			import { characterInit,
+					 loadModel } from './character.js';
+			
+
+			var container, stats;
+			var camera, scene, renderer;
+			var frameNumber = 0;
+			var modelLoaded;
+			var getImageData = true;
+
+			
+
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.getElementById( 'container' );
+
+				scene = new THREE.Scene();
+				scene.background = new THREE.Color( 0xf0f0f0 );
+
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
+				camera.position.set( 0, 250, -1000 );
+				scene.add( camera );
+
+				scene.add( new THREE.AmbientLight( 0xf0f0f0 ) );
+				var light = new THREE.SpotLight( 0xffffff, 1.5 );
+				light.position.set( 0, 1500, 200 );
+				light.angle = Math.PI * 0.2;
+				light.castShadow = true;
+				light.shadow.camera.near = 200;
+				light.shadow.camera.far = 2000;
+				light.shadow.bias = - 0.000222;
+				light.shadow.mapSize.width = 1024;
+				light.shadow.mapSize.height = 1024;
+				scene.add( light );
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.shadowMap.enabled = true;
+				container.appendChild( renderer.domElement );
+
+				stats = new Stats();
+				container.appendChild( stats.dom );
+
+				var controls = new OrbitControls( camera, renderer.domElement );
+				controls.damping = 0.2;
+				controls.addEventListener( 'change', render );
+
+
+				
+
+
+
+				$.getJSON( "../export/rotations.json", function( rotations ) {
+            
+					var gui = new GUI();
+            		gui.open();
+
+					characterInit(scene, renderer, camera, rotations, gui);
+					loadModel('https://threejs.org/examples/models/gltf/Soldier.glb');
+
+
+				});
+
+			}
+
+
+			function animate() {
+				requestAnimationFrame( animate );
+				render();
+				stats.update();	
+			}
+
+			function render() {
+				renderer.render( scene, camera );
+			}
+
+		</script>
+
+	</body>
+</html>
